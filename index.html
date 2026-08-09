@@ -787,18 +787,18 @@
       <h2>See your site before you spend anything.</h2>
       <p>Tell me a bit about the business. I'll put together a preview and we'll go over it together, no cost, no obligation.</p>
     </div>
-    <form class="book-form reveal" onsubmit="event.preventDefault(); this.querySelector('.btn').textContent='Request sent';">
+    <form class="book-form reveal" id="bookForm" action="https://formspree.io/f/mljrgkrv" method="POST">
       <div class="field">
         <label for="bname">Business name</label>
-        <input id="bname" type="text" placeholder="Your business name" required>
+        <input id="bname" name="business_name" type="text" placeholder="Your business name" required>
       </div>
       <div class="field">
         <label for="contact">Your name & phone or email</label>
-        <input id="contact" type="text" placeholder="How should we reach you?" required>
+        <input id="contact" name="contact_info" type="text" placeholder="How should we reach you?" required>
       </div>
       <div class="field">
         <label for="tier">What are you looking for?</label>
-        <select id="tier">
+        <select id="tier" name="tier_interest">
           <option>Not sure yet</option>
           <option>Get Found — Starter</option>
           <option>Get Leads — Standard</option>
@@ -807,10 +807,10 @@
       </div>
       <div class="field">
         <label for="notes">Anything else worth knowing?</label>
-        <textarea id="notes" placeholder="Current site, timeline, goals..."></textarea>
+        <textarea id="notes" name="notes" placeholder="Current site, timeline, goals..."></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Request my free preview</button>
-      <div class="book-note">No payment required to see your preview. Deposit only due once you approve scope.</div>
+      <div class="book-note" id="bookFormNote">No payment required to see your preview. Deposit only due once you approve scope.</div>
     </form>
   </div>
 </section>
@@ -1137,6 +1137,41 @@
   }
   document.addEventListener('scroll', updateBackToTop, { passive: true });
   backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // ---- Contact form: real submission to Formspree ----
+  const bookForm = document.getElementById('bookForm');
+  const bookFormNote = document.getElementById('bookFormNote');
+  if (bookForm) {
+    bookForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = bookForm.querySelector('.btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(bookForm.action, {
+          method: 'POST',
+          body: new FormData(bookForm),
+          headers: { 'Accept': 'application/json' },
+        });
+        if (response.ok) {
+          submitBtn.textContent = 'Request sent ✓';
+          bookFormNote.textContent = "Got it — I'll be in touch shortly to schedule your free preview.";
+          bookForm.reset();
+        } else {
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+          bookFormNote.textContent = "Something went wrong sending that. Try again, or reach out directly.";
+          bookFormNote.style.color = '#E8703A';
+        }
+      } catch (err) {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        bookFormNote.textContent = "Something went wrong sending that. Try again, or reach out directly.";
+        bookFormNote.style.color = '#E8703A';
+      }
+    });
+  }
 </script>
 </body>
 </html>
